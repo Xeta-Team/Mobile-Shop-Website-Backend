@@ -41,7 +41,20 @@ export function getAllProducts(req, res)
     (
         (result) =>
         {
-            res.status(200).json(result)
+            const formattedProducts = result.map((product) => ({
+                id: product._id,
+                name: product.productName,
+                category: product.productCategory,
+                colors: product.variants.map(v => ({
+                    name: v.colorName,
+                    hex: v.colorHex
+                })),
+                status: product.variants.some(v => v.stock > 0) ? "Available" : "Out of Stock",
+                price: product.productPrice,
+                imageUrl: product.mainImage || product.images[0],
+                description: product.productDescription
+            }))
+            res.status(200).json(formattedProducts)
         }
     ).catch
     (
