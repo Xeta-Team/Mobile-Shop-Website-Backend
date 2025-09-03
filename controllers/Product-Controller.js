@@ -6,39 +6,34 @@ import bodyParser from "body-parser";
 
 export function addProduct(req, res) 
 {
-    if(!req.user){  
-        return res.status(401).json({ message: "Unauthorized" });
-    }
+    const newProductData = req.body;
 
-    // if(!req.user.isAdmin) {
-    //     return res.status(403).json({ message: "Forbidden: Admins only" });
-    // }
 
-    console.log(req.user);
-        let newProduct = req.body;
-        let product = new Product(newProduct);
-        product.save().then(
-            () => {
-                res.status(200).json
-                (   
-                    {
-                    "messaege" : "Product added successfully"
-                    }
-                )
+    const product = new Product(newProductData);
+    
+    product.save()
+        .then(savedProduct => {
+
+            res.status(201).json({
+                message: "Product added successfully",
+                product: savedProduct
+            });
+        })
+        .catch(err => {
+            if (err.name === 'ValidationError') {
+                console.error("Validation Error:", err.message);
+                return res.status(400).json({
+                    message: "Failed to add product due to validation errors.",
+                    errors: err.errors
+                });
             }
-        ).catch
-                (
-                    (err) => 
-                    {
-                        res.json
-                        (
-                            {
-                                "message" : "An error occured"
-                            }
-                        )
-                    }
-                )
+            console.error("Server Error:", err);
+            res.status(500).json({
+                message: "An internal server error occurred."
+            });
+        });
 }
+
 
 export function getAllProducts(req, res)
 {
