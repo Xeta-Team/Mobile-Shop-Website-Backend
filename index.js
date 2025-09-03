@@ -4,6 +4,7 @@ import bodyParser from "body-parser"
 import cors from "cors"
 import mongoose from "mongoose"
 import productRouter from "./routes/Product-Router.js"
+import userRouter from "./routes/User-Router.js"
 
 
 dotenv.config()
@@ -31,6 +32,7 @@ app.use(bodyParser.json())
 //     console.log(token)
 // })
 app.use("/api/products", productRouter)
+app.use("/api/users", userRouter)
 
 
 
