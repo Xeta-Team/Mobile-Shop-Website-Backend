@@ -5,11 +5,13 @@ import cors from "cors"
 import mongoose from "mongoose"
 import productRouter from "./routes/Product-Router.js"
 import userRouter from "./routes/User-Router.js"
+import jwt from "jsonwebtoken"
 
 
 dotenv.config()
 
 let mongoURL = process.env.MONGO_URL;
+
 mongoose.connect(mongoURL);
 
 let connection = mongoose.connection;
@@ -25,12 +27,24 @@ const app = express()
 
 app.use(cors())
 app.use(bodyParser.json())
-// app.use((req, res, next) => {
-    
-//     let token = req.header
-//     ("Authorization")
-//     console.log(token)
-// })
+
+app.use((req,resizeBy,next)=>
+{
+    let token = req.header
+    ("Authorization")
+
+    if(token){
+        token = token.replace("Bearer ","")
+        jwt.verify(token,process.env.JWT_SECRET,(err,decoded)=>
+        {
+            if(!err){
+                req.user = decoded;    
+            }   
+        })
+        
+    }next();    
+})
+
 app.use("/api/products", productRouter)
 app.use("/api/users", userRouter)
 

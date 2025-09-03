@@ -6,12 +6,21 @@ import bodyParser from "body-parser";
 
 export function addProduct(req, res) 
 {
+    if(!req.user){  
+        return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    // if(!req.user.isAdmin) {
+    //     return res.status(403).json({ message: "Forbidden: Admins only" });
+    // }
+
+    console.log(req.user);
         let newProduct = req.body;
         let product = new Product(newProduct);
         product.save().then(
             () => {
                 res.status(200).json
-                (
+                (   
                     {
                     "messaege" : "Product added successfully"
                     }
