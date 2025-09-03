@@ -1,5 +1,4 @@
-import express from "express"
-import mongoose from "mongoose" 
+import mongoose from "mongoose";
 
 const productSchema = new mongoose.Schema(
   {
@@ -8,54 +7,46 @@ const productSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
-    productType: {
+    productDescription: {
       type: String,
-      enum: ["iPhone", "iPad", "MacBook", "Apple Watch", "AirPods", "Accessory"],
       required: true,
-    },
-    productBrand: {
-      type: String,
-      default: "Apple", // since your shop only sells Apple
-      immutable: true,
-    },
-    description: {
-      type: String,
       trim: true,
     },
-    price: {
+    productPrice: {
       type: Number,
       required: true,
       min: 0,
     },
-    colors: [
+    variants: [
       {
-        type: String,
-        enum: ["Black", "White", "Silver", "Gold", "Space Gray", "Blue", "Red", "Green", "Pink", "Purple"], // Apple colors
+        colorName: { type: String, required: true },
+        colorHex: { type: String, required: true },
+        storage: { type: String, required: true },
+        stock: { type: Number, required: true, min: 0 },
+        price: { type: Number, required: true, min: 0 },
       },
     ],
-    storageOptions: [
-      {
-        type: String, // like "64GB", "128GB", "256GB", "512GB", "1TB"
-      },
-    ],
+    productCategory: {
+      type: String,
+      required: true,
+    },
     images: [
       {
-        type: String, // URLs of product images
+        type: String, 
+        required: true,
       },
     ],
-    quantity: {
-      type: Number,
+    mainImage: {
+      type: String, 
       required: true,
-      min: 0,
-    },
-    createdAt: {
-      type: Date,
-      default: Date.now,
     },
   },
-  { timestamps: true }
-)
+  {
+    timestamps: true,
+  }
+);
 
-let Product = mongoose.model("Product", productSchema);
+const Product = mongoose.model("Product", productSchema);
 
 export default Product;
+
