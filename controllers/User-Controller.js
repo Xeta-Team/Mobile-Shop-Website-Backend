@@ -1,6 +1,6 @@
 import express from 'express';
 import User from '../models/User-Regestration-model.js';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
 
@@ -9,8 +9,6 @@ export function registerUser(req, res) {
 
 
     const data = req.body;
-
-    data.password = bcrypt.hashSync(data.password, 10);
 
     const newUser = new User(data);
     newUser.save().then(
@@ -22,30 +20,30 @@ export function registerUser(req, res) {
             (err) => {
                 res.status(500).json("Error registering user: " + err.message);
             })
+
+    
         }
 
 export async function loginUser(req, res) {
   try {
     const { email, password } = req.body;
 
-    // 1. Validate input
     if (!email || !password) {
       return res.status(400).json({ message: "Email and password are required" });
     }
 
-    // 2. Find user by email
-    const user = await User.findOne({ email });
+    // Find user and explicitly select the password, which is hidden by default
+    const user = await User.findOne({ email }).select('+password');
     if (!user) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
-    // 3. Check password
-    const isPasswordValid = bcrypt.compareSync(password, user.password);
+    // 2. Use the async version of compare
+    const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
-    // 4. Generate JWT
     const token = jwt.sign(
       {
         id: user._id,
@@ -58,7 +56,6 @@ export async function loginUser(req, res) {
       { expiresIn: "1h" }
     );
 
-    // 5. Send response
     res.status(200).json({
       message: "Login successful",
       token,
@@ -76,6 +73,7 @@ export async function loginUser(req, res) {
     res.status(500).json({ message: "Server error" });
   }
 }
+
 
 
 
