@@ -6,6 +6,7 @@ import mongoose from "mongoose"
 import productRouter from "./routes/Product-Router.js"
 import userRouter from "./routes/User-Router.js"
 import jwt from "jsonwebtoken"
+import reviewRouter from "./routes/Review-Router.js"
 
 
 dotenv.config()
@@ -47,6 +48,7 @@ app.use((req,resizeBy,next)=>
 
 app.use("/api/products", productRouter)
 app.use("/api/users", userRouter)
+app.use("/api/reviews", reviewRouter)
 
 
 
