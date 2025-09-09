@@ -1,28 +1,18 @@
-import express from 'express';
 import User from '../models/User-Regestration-model.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
-
-
 export function registerUser(req, res) {
-
-
     const data = req.body;
-
     const newUser = new User(data);
     newUser.save().then(
-        (result) => 
-            {
-                res.status(201).json("User registered successfully");
-            }).catch(
-                
-            (err) => {
-                res.status(500).json("Error registering user: " + err.message);
-            })
-
-    
-        }
+        (result) => {
+            res.status(201).json("User registered successfully");
+        }).catch(
+        (err) => {
+            res.status(500).json("Error registering user: " + err.message);
+        });
+}
 
 export async function loginUser(req, res) {
   try {
@@ -32,13 +22,11 @@ export async function loginUser(req, res) {
       return res.status(400).json({ message: "Email and password are required" });
     }
 
-    // Find user and explicitly select the password, which is hidden by default
     const user = await User.findOne({ email }).select('+password');
     if (!user) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
-    // 2. Use the async version of compare
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       return res.status(401).json({ message: "Invalid email or password" });
@@ -51,6 +39,7 @@ export async function loginUser(req, res) {
         lastName: user.lastName,
         email: user.email,
         username: user.username,
+        role: user.role, // we didn't include user pasword in token
       },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
@@ -65,6 +54,7 @@ export async function loginUser(req, res) {
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
+        role: user.role, // <-- Role is now in the response
       },
     });
 
@@ -73,7 +63,3 @@ export async function loginUser(req, res) {
     res.status(500).json({ message: "Server error" });
   }
 }
-
-
-
-

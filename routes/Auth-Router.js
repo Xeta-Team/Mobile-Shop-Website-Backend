@@ -59,7 +59,7 @@ router.get('/google/callback', async (req, res) => {
         const payload = { id: user._id, username: user.username, email: user.email };
         const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });
         
-        res.redirect(`http://localhost:5173/login-success?token=${token}`);
+        res.redirect(`http://localhost:5173/user?token=${token}`);
 
     } catch (error) {
         // This will now show the REAL error from Google
