@@ -1,4 +1,4 @@
-import express from "express";
+import express, { response } from "express";
 import Product from "../models/Add-product-model.js";
 import bodyParser from "body-parser";
 
@@ -41,20 +41,20 @@ export function getAllProducts(req, res)
     (
         (result) =>
         {
-            const formattedProducts = result.map((product) => ({
-                id: product._id,
-                name: product.productName,
-                category: product.productCategory,
-                colors: product.variants.map(v => ({
-                    name: v.colorName,
-                    hex: v.colorHex
-                })),
-                status: product.variants.some(v => v.stock > 0) ? "Available" : "Out of Stock",
-                price: product.productPrice,
-                imageUrl: product.mainImage || product.images[0],
-                description: product.productDescription
-            }))
-            res.status(200).json(formattedProducts)
+            // const formattedProducts = result.map((product) => ({
+            //     id: product._id,
+            //     name: product.productName,
+            //     category: product.productCategory,
+            //     colors: product.variants.map(v => ({
+            //         name: v.colorName,
+            //         hex: v.colorHex
+            //     })),
+            //     status: product.variants.some(v => v.stock > 0) ? "Available" : "Out of Stock",
+            //     price: product.productPrice,
+            //     imageUrl: product.mainImage || product.images[0],
+            //     description: product.productDescription
+            // }))
+            res.status(200).json(result)
         }
     ).catch
     (
@@ -129,5 +129,30 @@ export async function deleteProduct(req,res)
     }
     
     
-} 
+}
+
+export const getProductDetails = async(request, response) => {
+    const productId = request.params.productId
+    
+    try{
+        const productDetails = await Product.findOne({_id: productId})
+
+        return response.json(productDetails)
+        
+    }catch(error){
+        return response.status(500).json(error)
+    }
+    
+}
+
+export const getRecentMobilePhones = async(request, response) => {
+    try{
+        const firstFiveDevices = await Product.find({productCategory: "Mobile Phone"}).sort({createdAt: -1}).limit(5)
+        
+        return response.json({firstFiveDevices})
+        
+    }catch(error){
+        return response.status(500).json(error)        
+    }
+}
    
