@@ -39,7 +39,7 @@ export async function loginUser(req, res) {
         lastName: user.lastName,
         email: user.email,
         username: user.username,
-        role: user.role, // <-- Role is now in the token
+        role: user.role, // we didn't include user pasword in token
       },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
