@@ -1,19 +1,14 @@
 import express from "express";
 import Product from "../models/Add-product-model.js";
 import bodyParser from "body-parser";
+import mongoose from "mongoose";
 
-
-
-export function addProduct(req, res) 
-{
+export function addProduct(req, res) {
     const newProductData = req.body;
-
-
     const product = new Product(newProductData);
-    
+
     product.save()
         .then(savedProduct => {
-
             res.status(201).json({
                 message: "Product added successfully",
                 product: savedProduct
@@ -34,13 +29,9 @@ export function addProduct(req, res)
         });
 }
 
-
-export function getAllProducts(req, res)
-{
-    Product.find().then
-    (
-        (result) =>
-        {
+export function getAllProducts(req, res) {
+    Product.find()
+        .then((result) => {
             const formattedProducts = result.map((product) => ({
                 id: product._id,
                 name: product.productName,
@@ -51,83 +42,77 @@ export function getAllProducts(req, res)
                 })),
                 status: product.variants.some(v => v.stock > 0) ? "Available" : "Out of Stock",
                 price: product.productPrice,
-                imageUrl: product.mainImage || product.images[0],
+                imageUrl: product.mainImage || (product.images && product.images[0]),
                 description: product.productDescription
-            }))
-            res.status(200).json(formattedProducts)
-        }
-    ).catch
-    (
-        (err) =>
-        {
-            res.json
-            (
-                {
-                    "message" : "An error occured"
-                }
-            )
-        }
-    )
+            }));
+            res.status(200).json(formattedProducts);
+        })
+        .catch((err) => {
+            console.error("Error fetching all products:", err);
+            res.status(500).json({
+                "message": "An error occurred while fetching products."
+            });
+        });
 }
 
-export async function updateProduct(req, res)
-{
-    const { id } = req.params.id; // <-- get id from URL
-    console.log("Product ID:", id);
-    console.log(id);
-
-    const data = req.body;
-
-    const updatedProduct = Product.findByIdAndUpdate(
-        id,
-        data,
-        { new: true , runValidators: true}
-
-    ).then
-    (
-        (result) => 
-            {
-                res.status(200).json
-                (
-                    {
-                        "message" : "Product updated successfully",
-                        "product" : result
-                    }
-                )
+export function getProductById(req, res) {
+    const { id } = req.params;
+    Product.findById(id)
+        .then((product) => {
+            if (!product) {
+                return res.status(404).json({ message: "Product not found" });
             }
-    ).catch
-    (
-        (err) => 
-        {
-            res.json
-            (
-                {
-                    "message" : "An error occured"
-                }
-            )
-        }
-    )
+            res.status(200).json(product);
+        })
+        .catch((err) => {
+            console.error(`Error fetching product by ID (${id}):`, err);
+            res.status(500).json({ message: "An error occurred", error: err.message });
+        });
 }
 
-export async function deleteProduct(req,res)
-{
-    try{
-        const { id } = req.params; // <-- get id from URL
+// =======================================================
+// CORRECTED FUNCTION
+// =======================================================
+export async function updateProduct(req, res) {
+    try {
+        // 1. Correctly get the 'id' string from req.params object
+        const { id } = req.params;
+        const updateData = req.body;
 
-        const deletedProduct = Product.findByIdAndDelete(id);
+        // 2. Use 'await' to wait for the database operation to complete.
+        // The 'result' will now be the actual updated document or null.
+        const updatedProduct = await Product.findByIdAndUpdate(id, updateData, { new: true });
 
-        if(!deleteProduct){
-            return res.status(404).json({ "message":"Product not found", deletedProduct });
-        } 
+        // 3. Check if a product was found and updated.
+        if (!updatedProduct) {
+            return res.status(404).json({ message: "Product not found" });
+        }
 
-        res.status(404).json({ message: "Deleted succesfully "});
-        }catch{
+        // 4. Send the updated product data, which is a clean object.
+        res.status(200).json({ message: "Product updated successfully", product: updatedProduct });
 
-            console.error("Error deleting product");
-            res.status(500).json({ error : "Internal server error" });
-
+    } catch (error) {
+        // 5. Add error handling for database or other potential errors.
+        console.error("Error updating product:", error);
+        res.status(500).json({ message: "An internal server error occurred." });
     }
-    
-    
-} 
-   
+}
+
+
+export async function deleteProduct(req, res) {
+    try {
+        let { id } = req.params;
+        id = id.trim();
+
+        const deletedProduct = await Product.findByIdAndDelete(id);
+
+        if (!deletedProduct) {
+            return res.status(404).json({ message: "Product not found" });
+        }
+
+        res.status(200).json({ message: "Deleted successfully", deletedProduct });
+    } catch (error) {
+        console.error("Error deleting product:", error);
+        res.status(500).json({ error: "Internal server error" });
+    }
+}
