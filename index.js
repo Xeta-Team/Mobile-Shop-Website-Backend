@@ -2,8 +2,6 @@ import dotenv from "dotenv";
 import express from "express";
 import cors from "cors";
 import mongoose from "mongoose";
-
-// --- Import all of your API routers ---
 import productRouter from "./routes/Product-Router.js";
 import userRouter from "./routes/User-Router.js";
 import authRouter from "./routes/Auth-Router.js";
