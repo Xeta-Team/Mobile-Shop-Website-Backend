@@ -72,9 +72,7 @@ export function getAllProducts(req, res)
 
 export async function updateProduct(req, res)
 {
-    const { id } = req.params.id; // <-- get id from URL
-    console.log("Product ID:", id);
-    console.log(id);
+    const { id } = req.params.id; 
 
     const data = req.body;
 
@@ -114,13 +112,13 @@ export async function deleteProduct(req,res)
     try{
         const { id } = req.params; // <-- get id from URL
 
-        const deletedProduct = Product.findByIdAndDelete(id);
+        const deletedProduct = await Product.findByIdAndDelete(id);
 
-        if(!deleteProduct){
+        if(!deletedProduct){
             return res.status(404).json({ "message":"Product not found", deletedProduct });
         } 
 
-        res.status(404).json({ message: "Deleted succesfully "});
+        res.status(200).json({ message: "Deleted succesfully "});
         }catch{
 
             console.error("Error deleting product");
