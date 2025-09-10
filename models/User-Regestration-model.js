@@ -38,6 +38,14 @@ const userSchema = new mongoose.Schema(
             enum: ['user', 'admin'],
             default: 'user',
         },
+        number: {
+            type: Number,
+            default: null,
+        },
+        address: {
+            type: String,
+            default: null,
+        }
     },
     {
         timestamps: true,
