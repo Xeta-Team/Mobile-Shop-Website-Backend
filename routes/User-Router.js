@@ -1,10 +1,22 @@
 import express from 'express';
-import { registerUser, loginUser } from '../controllers/User-Controller.js';
+import {
+    registerUser,
+    loginUser,
+    getUserProfile,
+    updateUserProfile
+} from '../controllers/User-Controller.js';
+// Corrected path and import type for the middleware
+import { authMiddleware } from '../controllers/authMiddleware.js ';
 
-let userRouter = express.Router();
+const router = express.Router();
 
-userRouter.post('/regester', registerUser);
-userRouter.post('/login', loginUser);
+// Public routes
+router.post('/register', registerUser);
+router.post('/login', loginUser);
 
+// Protected routes - these require a valid token
+router.get('/profile', authMiddleware, getUserProfile);
+router.put('/profile', authMiddleware, updateUserProfile);
 
-export default userRouter;
+export default router;
+

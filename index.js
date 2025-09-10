@@ -1,58 +1,41 @@
-import dotenv from "dotenv"
-import express from "express"
-import bodyParser from "body-parser"
-import cors from "cors"
-import mongoose from "mongoose"
-import productRouter from "./routes/Product-Router.js"
-import userRouter from "./routes/User-Router.js"
-import jwt from "jsonwebtoken"
-import reviewRouter from "./routes/Review-Router.js"
+import dotenv from "dotenv";
+import express from "express";
+import cors from "cors";
+import mongoose from "mongoose";
+import productRouter from "./routes/Product-Router.js";
+import userRouter from "./routes/User-Router.js";
+import authRouter from "./routes/Auth-Router.js";
 
+dotenv.config();
 
-dotenv.config()
+const app = express();
+const port = 3001;
 
-let mongoURL = process.env.MONGO_URL;
-
+// --- Database Connection ---
+const mongoURL = process.env.MONGO_URL;
 mongoose.connect(mongoURL);
+const connection = mongoose.connection;
+connection.once("open", () => {
+    console.log("MongoDB connection established successfully");
+});
 
-let connection = mongoose.connection;
+// --- Middleware ---
+app.use(cors());
+app.use(express.json()); // Middleware to parse JSON bodies
 
-connection.once("open", ()=>
-{
-    console.log("MongoDB connection established successfully")
-})
+// --- API Routes ---
+// Connect your routers to the main application
+// Any request to "/api/products" will be handled by productRouter
+app.use("/api/products", productRouter);
 
-dotenv.config()
+// Any request to "/api/users" will be handled by userRouter (e.g., standard registration)
+app.use("/api/users", userRouter);
 
-const app = express()
-
-app.use(cors())
-app.use(bodyParser.json())
-
-app.use((req,resizeBy,next)=>
-{
-    let token = req.header
-    ("Authorization")
-
-    if(token){
-        token = token.replace("Bearer ","")
-        jwt.verify(token,process.env.JWT_SECRET,(err,decoded)=>
-        {
-            if(!err){
-                req.user = decoded;    
-            }   
-        })
-        
-    }next();    
-})
-
-app.use("/api/products", productRouter)
-app.use("/api/users", userRouter)
-app.use("/api/reviews", reviewRouter)
+// Any request to "/api/auth" will be handled by authRouter (e.g., Google OAuth)
+app.use("/api/auth", authRouter);
 
 
-
-
-app.listen(3001, () => {
-    console.log("Server is runing on port 3001")
-})
+// --- Start the Server ---
+app.listen(port, () => {
+    console.log(`Server is running on port ${3001}`);
+});
