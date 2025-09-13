@@ -86,7 +86,7 @@ export const getUserProfile = async (req, res) => {
   }
   
   try {
-    const user = await User.findById(req.user.id).select('-password');
+    const user = await User.find();
     if (user) {
       res.json(user);
     } else {
@@ -131,4 +131,58 @@ export const updateUserProfile = async (req, res) => {
     res.status(500).json({ message: 'Server error while updating profile' });
   }
 };
+
+const getUsers = () => {
+  try{
+      const allusers = Use
+  }
+  catch (erorr) {
+    
+  }
+}
+
+export async function deleteUser(req,res)
+{
+    try{
+        const { id } = req.params;
+
+        const deletedUser = await User.findByIdAndDelete(id);
+
+        if(!deletedUser){
+            return res.status(404).json({ "message":"Product not found", deletedUser });
+        } 
+
+        res.status(200).json({ message: "Deleted succesfully "});
+        }catch{
+
+            console.error("Error deleting product");
+            res.status(500).json({ error : "Internal server error" });
+
+    }
+    
+    
+}
+
+export async function updateUser(req, res)
+{
+    const { id } = req.params; 
+    const data = req.body;
+
+    try{
+      const user = await User.findById(id)
+    
+      user.role = data.role
+      user.save()
+
+      res.json({    
+                "message" : "user updated successfully",
+                "product" : result
+      })
+      }catch(error){
+        res.json({
+                "message": "An error occured"
+        })
+      }
+}
+
 
