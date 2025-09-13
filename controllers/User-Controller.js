@@ -1,6 +1,7 @@
 import User from '../models/User-Regestration-model.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { OAuth2Client } from "google-auth-library";
 
 export const registerUser = async (req, res) => {
     const { username, firstName, lastName, email, password } = req.body;
@@ -80,13 +81,73 @@ export async function loginUser(req, res) {
   }
 }
 
+export const googleLogin = async(req, res) => {
+  const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+  try {
+      const { googleToken } = req.body;
+
+      const ticket = await client.verifyIdToken({
+        idToken: googleToken,
+        audience: process.env.GOOGLE_CLIENT_ID,
+      });
+      const payload = ticket.getPayload();
+
+      // Check if user exists in DB
+      let user = await User.findOne({ email: payload.email });
+
+      if (!user) {
+        res.status(404).json({message: 'User not found'})
+      }
+
+      const token = jwt.sign(
+      {
+        id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        username: user.username,
+        role: user.role,
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+
+    res.status(200).json({
+      message: "Login successful",
+      token,
+      user: {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role,
+      },
+    });
+    } catch (err) {
+      res.status(400).json({ message: "Invalid Google token" });
+    }
+}
+
+export const getAllUsers = async(req, res) => {
+  try{
+    const allUsers = await User.find()
+
+    res.status(200).json(allUsers)
+  }catch(error){
+    res.json({
+      message : "Internal Server Error"
+    })
+  }
+}
+
 export const getUserProfile = async (req, res) => {
   if (!req.user) {
     return res.status(401).json({ message: 'Not authorized. User information is missing.' });
   }
   
   try {
-    const user = await User.findById(req.user.id).select('-password');
+    const user = await User.findById(req.user.id);
     if (user) {
       res.json(user);
     } else {
@@ -131,4 +192,49 @@ export const updateUserProfile = async (req, res) => {
     res.status(500).json({ message: 'Server error while updating profile' });
   }
 };
+
+export async function deleteUser(req,res)
+{
+    try{
+        const { id } = req.params;
+
+        const deletedUser = await User.findByIdAndDelete(id);
+
+        if(!deletedUser){
+            return res.status(404).json({ "message":"Product not found", deletedUser });
+        } 
+
+        res.status(200).json({ message: "Deleted succesfully "});
+        }catch{
+
+            console.error("Error deleting product");
+            res.status(500).json({ error : "Internal server error" });
+
+    }
+    
+    
+}
+
+export async function updateUser(req, res)
+{
+    const { id } = req.params; 
+    const data = req.body;
+
+    try{
+      const user = await User.findById(id)
+    
+      user.role = data.role
+      user.save()
+
+      res.json({    
+                "message" : "user updated successfully",
+                "product" : result
+      })
+      }catch(error){
+        res.json({
+                "message": "An error occured"
+        })
+      }
+}
+
 
