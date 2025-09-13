@@ -129,13 +129,25 @@ export const googleLogin = async(req, res) => {
     }
 }
 
+export const getAllUsers = async(req, res) => {
+  try{
+    const allUsers = await User.find()
+
+    res.status(200).json(allUsers)
+  }catch(error){
+    res.json({
+      message : "Internal Server Error"
+    })
+  }
+}
+
 export const getUserProfile = async (req, res) => {
   if (!req.user) {
     return res.status(401).json({ message: 'Not authorized. User information is missing.' });
   }
   
   try {
-    const user = await User.find();
+    const user = await User.findById(req.user.id);
     if (user) {
       res.json(user);
     } else {
@@ -180,15 +192,6 @@ export const updateUserProfile = async (req, res) => {
     res.status(500).json({ message: 'Server error while updating profile' });
   }
 };
-
-const getUsers = () => {
-  try{
-      const allusers = Use
-  }
-  catch (erorr) {
-    
-  }
-}
 
 export async function deleteUser(req,res)
 {
