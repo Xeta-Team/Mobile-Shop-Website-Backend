@@ -1,6 +1,7 @@
 import User from '../models/User-Regestration-model.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { OAuth2Client } from "google-auth-library";
 
 export const registerUser = async (req, res) => {
     const { username, firstName, lastName, email, password } = req.body;
@@ -78,6 +79,54 @@ export async function loginUser(req, res) {
     console.error("Login error:", err);
     res.status(500).json({ message: "Server error" });
   }
+}
+
+export const googleLogin = async(req, res) => {
+  const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+  try {
+      const { googleToken } = req.body;
+
+      const ticket = await client.verifyIdToken({
+        idToken: googleToken,
+        audience: process.env.GOOGLE_CLIENT_ID,
+      });
+      const payload = ticket.getPayload();
+
+      // Check if user exists in DB
+      let user = await User.findOne({ email: payload.email });
+
+      if (!user) {
+        res.status(404).json({message: 'User not found'})
+      }
+
+      const token = jwt.sign(
+      {
+        id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        username: user.username,
+        role: user.role,
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+
+    res.status(200).json({
+      message: "Login successful",
+      token,
+      user: {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role,
+      },
+    });
+    } catch (err) {
+      res.status(400).json({ message: "Invalid Google token" });
+    }
 }
 
 export const getUserProfile = async (req, res) => {
