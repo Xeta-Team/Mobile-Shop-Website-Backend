@@ -237,4 +237,17 @@ export async function updateUser(req, res)
       }
 }
 
+export const getUserRole = (req, res) => {
+  try{
+      const role = req.user.role
+      
+      res.json(role)
+      
+  }catch(error){
+    res.json({
+      "message" : "Internal server error"
+    })
+  }
+}
+
 

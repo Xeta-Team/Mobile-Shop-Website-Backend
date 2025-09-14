@@ -7,7 +7,8 @@ import {
     deleteUser,
     updateUser,
     googleLogin,
-    getAllUsers
+    getAllUsers,
+    getUserRole
 } from '../controllers/User-Controller.js';
 // Corrected path and import type for the middleware
 import { authMiddleware } from '../controllers/authMiddleware.js ';
@@ -22,6 +23,7 @@ router.post('/google-login', googleLogin);
 // Protected routes - these require a valid token
 router.get('/', authMiddleware, getAllUsers);
 router.get('/profile', authMiddleware, getUserProfile);
+router.get('/role', authMiddleware, getUserRole);
 
 
 router.put('/profile', authMiddleware, updateUserProfile);
