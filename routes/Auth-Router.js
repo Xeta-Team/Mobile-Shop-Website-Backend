@@ -23,7 +23,16 @@ router.get('/google/callback', async (req, res) => {
             client_secret: process.env.GOOGLE_CLIENT_SECRET,
             redirect_uri: 'http://localhost:3001/api/auth/google/callback', // Must match Google Cloud Console
             grant_type: 'authorization_code',
+
+
         });
+
+         const userPayload = {
+            _id: user._id,
+            username: user.username,
+            email: user.email,
+            role: user.role,
+        };
         const { access_token } = tokenResponse.data;
         console.log("Step 1 SUCCESS: Access token received.");
 
@@ -34,6 +43,8 @@ router.get('/google/callback', async (req, res) => {
         });
         const googleUser = userResponse.data;
         console.log("Step 2 SUCCESS: User profile received:", googleUser.email);
+
+        
         
         // --- Step 3: Find or create user in your database ---
         console.log("Step 3: Finding or creating user in database...");
@@ -48,6 +59,7 @@ router.get('/google/callback', async (req, res) => {
                 username: googleUser.email,
                 password: `google_oauth_${Date.now()}_${Math.random()}`,
             });
+            user: userPayload
             await user.save();
             console.log("New user created successfully.");
         } else {
