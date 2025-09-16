@@ -46,3 +46,19 @@ export const placeOrder = async (req, res) => {
     res.status(500).json({ error: 'Order validation failed', details: error.message });
   }
 };
+
+export const getSpecificUserOrder = async(req, res) => {
+  try{
+    const userId = req.user._id
+    const orders = await Order.find({user: userId})
+
+    res.json({
+      orders: orders
+    })
+  }catch(error){
+    res.status(500).json({
+      'message': error
+    })
+  }
+ 
+}
