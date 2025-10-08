@@ -1,15 +1,34 @@
-import express from "express"
-import { addProduct,deleteProduct,getAllProducts , getProductDetails, getRecentMobilePhones, updateProduct } from "../controllers/Product-Controller.js"; 
-import { authMiddleware } from "../controllers/authMiddleware.js";
+import express from 'express';
+import { authMiddleware } from '../controllers/authMiddleware.js'; 
+const router = express.Router();
 
-let productRouter = express.Router();
+// Import all your controller functions
+import { 
+    getAllProducts,
+    getLatestPhones,
+    addProductVariant,
+    getProductById,
+    updateProduct,
+    deleteProduct,
+    getProductsByCategory,
+} from '../controllers/Product-Controller.js';
 
-productRouter.get("/", getAllProducts);
-productRouter.get("/latestPhones", getRecentMobilePhones);
-productRouter.get("/:productId", getProductDetails);
-productRouter.put("/update/:id", updateProduct);
-productRouter.post("/addProduct", addProduct);
-productRouter.delete("/delete/:id", authMiddleware, deleteProduct);
+// --- Define Routes ---
 
-export default productRouter;
+// General GET routes
+router.get('/', getAllProducts);
+router.get('/category/:category', getProductsByCategory);
+
+// Specific GET route - MUST be before any dynamic routes like '/:id'
+router.get('/latestPhones', getLatestPhones);
+
+// POST route for adding a product
+router.post('/addProduct', authMiddleware, addProductVariant);
+
+// Dynamic routes that use an ID - These should come last
+router.get('/:id', getProductById);
+router.put('/:id', authMiddleware, updateProduct);
+router.delete('/:id', authMiddleware, deleteProduct);
+
+export default router;
 
