@@ -11,7 +11,6 @@ import {
     updateProduct,
     deleteProduct,
     getProductsByCategory,
-    getProductsForSearch,
 } from '../controllers/Product-Controller.js';
 
 // --- Define Routes ---
@@ -19,7 +18,6 @@ import {
 // General GET routes
 router.get('/', getAllProducts);
 router.get('/category/:category', getProductsByCategory);
-router.get('/searchbar/products',getProductsForSearch);
 
 // Specific GET route - MUST be before any dynamic routes like '/:id'
 router.get('/latestPhones', getLatestPhones);

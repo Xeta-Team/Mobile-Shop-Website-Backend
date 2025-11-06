@@ -234,18 +234,3 @@ export const deleteProduct = async (req, res) => {
         res.status(500).json({ message: "An error occurred on the server." });
     }
 };
-
-export const getProductsForSearch = async(request,response) => {
-    try{
-        const products = await Product.find({}, 'name base_image')
-        .populate({
-            path:'variants',
-            select: 'price colorName',
-            options: {sort:{price:1 }, limit: 1}
-        }).lean()
-        response.status(200).json(products)
-    }catch(error){
-        response.json(error)
-    }
-    
-}

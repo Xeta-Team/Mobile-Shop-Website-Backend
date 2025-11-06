@@ -6,22 +6,18 @@ export const placeOrder = async (req, res) => {
   try {
     const { orderItems, billingAddress, shippingAddress, paymentMethod, totalPrice, orderNotes } = req.body;
 
-    // Get the user ID from the authMiddleware
     const userId = req.user.id;
 
-    // Ensure there are items in the order
     if (!orderItems || orderItems.length === 0) {
       return res.status(400).json({ error: 'No order items found.' });
     }
 
-    // Map the frontend cart items to the format required by the database schema
     const orderItemsForDb = orderItems.map(item => {
-      // Validate that the essential productId exists for each item
       if (!item.productId) {
         throw new Error('Missing productId for an item in the order.');
       }
       return {
-        product: item.productId, // Link to the Product model
+        product: item.productId,
         name: item.name,
         quantity: item.quantity,
         price: item.price,
@@ -29,20 +25,41 @@ export const placeOrder = async (req, res) => {
       };
     });
 
-    // Create a new order instance with all the required data
     const newOrder = new Order({
-      user: userId, // Link to the User model
+      user: userId,
       orderItems: orderItemsForDb,
       billingAddress,
       shippingAddress,
       paymentMethod,
       totalPrice,
-      orderStatus: 'Pending', // Default status for a new order
+      orderStatus: 'Pending',
       orderNotes,
     });
 
     // Save the new order to the database
     await newOrder.save();
+    
+    // --- NEW: SEND ORDER CONFIRMATION EMAIL ---
+    try {
+        const emailContent = getOrderUpdateEmail({
+            user: { firstName: newOrder.billingAddress.firstName }, // Pass the customer's first name
+            order: newOrder,
+            status: 'Confirmation' // Use the new template key
+        });
+
+        if (emailContent) {
+            await sendEmail({
+                to: newOrder.billingAddress.email,
+                subject: emailContent.subject,
+                html: emailContent.html,
+            });
+        }
+    } catch (emailError) {
+        // Log the email error but don't fail the order placement process
+        console.error(`Failed to send confirmation email for order ${newOrder._id}:`, emailError);
+    }
+    // --- END OF NEW CODE ---
+
     res.status(201).json({ message: "Order placed successfully" });
 
   } catch (error) {
@@ -58,19 +75,13 @@ export const placeOrder = async (req, res) => {
  */
 export const getUserOrders = async (req, res) => {
     try {
-        // The user's ID is attached to the request by the authMiddleware
         const userId = req.user.id;
-
-        // Find all orders where the 'user' field matches the logged-in user's ID
-        // Sort by creation date to show the newest orders first
         const orders = await Order.find({ user: userId }).sort({ createdAt: -1 });
 
         if (!orders) {
-            // This case is unlikely but good for completeness
             return res.status(404).json({ message: "You have no orders." });
         }
 
-        // Send the found orders back to the frontend
         res.status(200).json(orders);
     } catch (error) {
         console.error("Error fetching user orders:", error);
@@ -96,14 +107,12 @@ export const getAllOrders = async (req, res) => {
 export const updateOrderStatus = async (req, res) => {
     try {
         const { status, trackingNumber } = req.body;
-        // Populate the user's details to get their email and name for the notification
         const order = await Order.findById(req.params.id).populate('user', 'email firstName');
 
         if (!order) {
             return res.status(404).json({ message: 'Order not found.' });
         }
 
-        // Update the order details
         order.orderStatus = status;
         if (status === 'Shipped' && trackingNumber) {
             order.trackingNumber = trackingNumber;
@@ -111,7 +120,6 @@ export const updateOrderStatus = async (req, res) => {
         
         await order.save();
 
-        // Get the appropriate email template for the new status
         const emailContent = getOrderUpdateEmail({
             user: order.user,
             order,
@@ -119,7 +127,6 @@ export const updateOrderStatus = async (req, res) => {
             trackingNumber: order.trackingNumber
         });
 
-        // If a template exists for this status, send the email
         if (emailContent) {
             try {
                 await sendEmail({
@@ -128,7 +135,6 @@ export const updateOrderStatus = async (req, res) => {
                     html: emailContent.html,
                 });
             } catch (emailError) {
-                // Log the error but don't prevent the API from responding successfully
                 console.error(`Failed to send ${status} email for order ${order._id}:`, emailError);
             }
         }

@@ -38,7 +38,7 @@ const sendEmail = async ({ to, subject, html }) => {
         const info = await transporter.sendMail(mailOptions);
         console.log(`[EMAIL SENT] Message ID: ${info.messageId}`);
     } catch (error) {
-        // Log the actual nodemailer/SMTP error (e.g., Authentication failure)
+        // LSog the actual nodemailer/SMTP error (e.g., Authentication failure)
         console.error("🚨 CRITICAL NODEMAILER ERROR 🚨:", error.message, 
                       "Check your EMAIL_USER and EMAIL_PASS (must be a Google App Password).");
         // CRITICAL: Throwing the error here ensures registration fails if the email cannot be sent.
@@ -84,7 +84,7 @@ export const registerUser = async (req, res) => {
 
         // 2. Send the verification email
         // IMPORTANT: Replace 'http://localhost:3001' with your actual deployed domain base URL (BASE_URL)
-        const verificationURL = `${process.env.BASE_URL || 'http://localhost:3001'}/api/users/verify?token=${verificationToken}`; 
+        const verificationURL = `http://localhost:3001/api/users/verify?token=${verificationToken}`;
         
         try {
             await sendEmail({
@@ -149,7 +149,7 @@ export const verifyUser = async (req, res) => {
         if (!user) {
             // Redirect to a frontend page indicating failure
             // Redirecting to /verification-status for error messages is helpful for debugging/user context
-            return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3000'}/verification-status?status=error&message=Invalid or expired verification link.`);
+            return res.redirect(`${process.env.FRONTEND_URL}/verification-status?status=error&message=Invalid or expired verification link.`);
         }
 
         // 1. Update user status
@@ -162,13 +162,13 @@ export const verifyUser = async (req, res) => {
         // 2. Redirect to the homepage (/) after successful verification, as requested.
         // NOTE: The user will land on the root path (/). They may need to manually log in 
         // unless you implement auto-login upon verification in the future.
-        return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3000'}/`);
+        return res.redirect(`${process.env.FRONTEND_URL}/`);
 
 
     } catch (error) {
         console.error("Verification Error:", error);
         // Redirect on server error
-        res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3000'}/verification-status?status=error&message=Internal server error during verification.`);
+        res.redirect(`${process.env.FRONTEND_URL}/verification-status?status=error&message=Internal server error during verification.`);
     }
 };
 // --- END Controller Function ---
@@ -199,7 +199,7 @@ export const googleLogin = async(req, res) => {
             lastName: family_name,
             email: email,
             username: username,
-            isVerified: true, // Google accounts are implicitly verified
+            isVerified: true, 
         });
         await user.save();
       }

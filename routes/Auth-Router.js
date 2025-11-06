@@ -11,7 +11,7 @@ router.get('/google/callback', async (req, res) => {
     const { code } = req.query;
 
     if (!code) {
-        return res.redirect('http://localhost:5173/register?error=Google-login-failed-no-code');
+        return res.redirect(`${process.env.FRONTEND_URL}/register?error=Google-login-failed-no-code`);
     }
 
     try {
@@ -21,7 +21,7 @@ router.get('/google/callback', async (req, res) => {
             code,
             client_id: process.env.GOOGLE_CLIENT_ID,
             client_secret: process.env.GOOGLE_CLIENT_SECRET,
-            redirect_uri: 'http://localhost:3001/api/auth/google/callback', // Must match Google Cloud Console
+            redirect_uri: `http://localhost:3001/api/auth/google/callback`, // Must match Google Cloud Console
             grant_type: 'authorization_code',
 
 
@@ -70,8 +70,8 @@ router.get('/google/callback', async (req, res) => {
         console.log("Step 4: Creating JWT and redirecting to frontend...");
         const payload = { id: user._id, username: user.username, email: user.email };
         const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });
-        
-        res.redirect(`http://localhost:5173/user?token=${token}`);
+
+        res.redirect(`${process.env.FRONTEND_URL}/user?token=${token}`);
 
     } catch (error) {
         // This will now show the REAL error from Google
@@ -89,7 +89,7 @@ router.get('/google/callback', async (req, res) => {
             // Something happened in setting up the request that triggered an Error
             console.error("Error Message:", error.message);
         }
-        res.redirect('http://localhost:5173/register?error=Authentication-failed');
+        res.redirect(`${process.env.FRONTEND_URL}/register?error=Authentication-failed`);
     }
 });
 
