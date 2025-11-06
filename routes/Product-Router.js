@@ -21,7 +21,7 @@ router.get('/category/:category', getProductsByCategory);
 
 // Specific GET route - MUST be before any dynamic routes like '/:id'
 router.get('/latestPhones', getLatestPhones);
-
+router.get('/searchbar/products', getAllProducts);
 // POST route for adding a product
 router.post('/addProduct', authMiddleware, addProductVariant);
 

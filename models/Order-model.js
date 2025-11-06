@@ -63,6 +63,10 @@ const orderSchema = new Schema(
     orderNotes: {
         type: String,
     },
+    trackingNumber: {
+        type: String,
+        default: '' // Defaults to an empty string
+    }
   },
   {
     timestamps: true,
