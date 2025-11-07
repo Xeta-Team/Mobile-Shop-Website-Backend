@@ -19,7 +19,7 @@ const userSchema = new mongoose.Schema(
         },
         password: {
             type: String,
-            required: [true, 'Password is required.'],
+
             minlength: [8, 'Password must be at least 8 characters long.'],
             select: false,
         },
@@ -45,7 +45,26 @@ const userSchema = new mongoose.Schema(
         address: {
             type: String,
             default: null,
+        },
+        // --- NEW FIELDS FOR EMAIL VERIFICATION ---
+        isVerified: {
+            type: Boolean,
+            default: false,
+        },
+        wishlist: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Product' // Links to your Product model
+    }],
+    
+        verificationToken: {
+            type: String,
+            default: null,
+        },
+        verificationTokenExpires: {
+            type: Date,
+            default: null,
         }
+        // --- END NEW FIELDS ---
     },
     {
         timestamps: true,
