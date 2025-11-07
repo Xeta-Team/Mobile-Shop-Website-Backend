@@ -1,0 +1,32 @@
+name: Deploy Backend to VPS
+
+# Run this workflow on a push to the 'main' branch
+on:
+  push:
+    branches:
+      - main
+      # If your branch is 'master', change 'main' to 'master'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH and Deploy
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            # Navigate to your project directory
+            cd /var/www/Cell-Web/Mobile-Shop-Website-Backend/
+
+            # Pull the latest code
+            git pull origin main
+
+            # Install dependencies
+            npm install
+
+            # Restart your app with pm2
+            # IMPORTANT: Change 'backend-app' to your app's name in pm2
+            pm2 restart backend-app
