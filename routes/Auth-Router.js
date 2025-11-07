@@ -21,7 +21,7 @@ router.get('/google/callback', async (req, res) => {
             code,
             client_id: process.env.GOOGLE_CLIENT_ID,
             client_secret: process.env.GOOGLE_CLIENT_SECRET,
-            redirect_uri: `http://localhost:3001/api/auth/google/callback`, // Must match Google Cloud Console
+            redirect_uri: `${import.meta.env.VITE_BACKEND_URL}/api/auth/google/callback`, // Must match Google Cloud Console
             grant_type: 'authorization_code',
 
 

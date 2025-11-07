@@ -57,7 +57,7 @@ export const getProductsByCategory = async (req, res) => {
         // Use a case-insensitive regex to match the category
         const products = await Product.find({ category: new RegExp(`^${categoryName}$`, 'i') }).populate('variants');
 
-        if (!products) { // products can be an empty array, so check for that too if needed
+        if (!products || products.length === 0) { // products can be an empty array, so check for that too if needed
             return res.status(404).json({ message: `No products found for category: ${categoryName}` });
         }
         res.status(200).json(products);

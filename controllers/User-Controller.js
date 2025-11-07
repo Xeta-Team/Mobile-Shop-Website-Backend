@@ -83,8 +83,8 @@ export const registerUser = async (req, res) => {
         await newUser.save();
 
         // 2. Send the verification email
-        // IMPORTANT: Replace 'http://localhost:3001' with your actual deployed domain base URL (BASE_URL)
-        const verificationURL = `http://localhost:3001/api/users/verify?token=${verificationToken}`;
+        // IMPORTANT: Replace '' with your actual deployed domain base URL (BASE_URL)
+        const verificationURL = `${import.meta.env.VITE_BACKEND_URL}/api/users/verify?token=${verificationToken}`;
         
         try {
             await sendEmail({

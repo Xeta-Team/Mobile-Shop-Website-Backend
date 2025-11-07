@@ -1,4 +1,4 @@
-import Order from '../models/Order-Model.js';
+import Order from '../models/Order-model.js';
 import sendEmail from '../utils/sendEmail.js';
 import { getOrderUpdateEmail } from '../utils/emailTemplates.js';
 
