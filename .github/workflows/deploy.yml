@@ -29,4 +29,5 @@ jobs:
             cd /var/www/Cell-Web/Mobile-Shop-Website-Backend/ && \
             git pull origin main && \
             npm install && \
+            npm audit fix && \
             pm2 restart backend

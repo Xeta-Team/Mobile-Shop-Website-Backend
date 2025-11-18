@@ -6,6 +6,7 @@ export const placeOrder = async (req, res) => {
   try {
     const { orderItems, billingAddress, shippingAddress, paymentMethod, totalPrice, orderNotes } = req.body;
 
+
     const userId = req.user.id;
 
     if (!orderItems || orderItems.length === 0) {
@@ -60,7 +61,7 @@ export const placeOrder = async (req, res) => {
     }
     // --- END OF NEW CODE ---
 
-    res.status(201).json({ message: "Order placed successfully" });
+    res.status(201).json({ message: "Order placed successfully" , data: newOrder });
 
   } catch (error) {
     console.error('Error placing order:', error.message);
