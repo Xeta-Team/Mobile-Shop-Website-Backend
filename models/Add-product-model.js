@@ -5,7 +5,7 @@ const { Schema } = mongoose;
 // FIX: Added "Mobile Phone" to the list of supported categories.
 const ALL_CATEGORIES = [
     'iPhone', 'iPad', 'Mac', 'other Phone', 'iWatch', 'Mobile Phone',
-    'Power & Charging', 'Headphone', 'Accessories (Protection & Add-ons)', 'Connectivity / Storage', 'Airpods'
+    'Power & Charging', 'Headphone', 'Accessories (Protection & Add-ons)', 'Connectivity / Storage', 'Airpods', 'Other Phone'
 ];
 
 // --- 1. Parent Product Schema ---
