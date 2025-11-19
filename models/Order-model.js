@@ -2,11 +2,11 @@ import mongoose from "mongoose";
 
 const Schema = mongoose.Schema;
 
-// Schema for individual products within an order
+
 const orderItemSchema = new Schema({
   product: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Product', // Links to the Product model
+    ref: 'Product', 
     required: true,
   },
   name: { type: String, required: true },
@@ -15,13 +15,13 @@ const orderItemSchema = new Schema({
   image: { type: String, required: true },
 });
 
-// Main schema for an order
+
 const orderSchema = new Schema(
   {
     user: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User', // Links to the User model
-      required: true, // This is a required field
+      ref: 'User', 
+      required: true, 
     },
     orderItems: [orderItemSchema],
     billingAddress: {
@@ -65,7 +65,7 @@ const orderSchema = new Schema(
     },
     trackingNumber: {
         type: String,
-        default: '' // Defaults to an empty string
+        default: '' 
     }
   },
   {

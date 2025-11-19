@@ -46,14 +46,14 @@ const userSchema = new mongoose.Schema(
             type: String,
             default: null,
         },
-        // --- NEW FIELDS FOR EMAIL VERIFICATION ---
+        
         isVerified: {
             type: Boolean,
             default: false,
         },
         wishlist: [{
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Product' // Links to your Product model
+        ref: 'Product' 
     }],
     
         verificationToken: {
@@ -64,7 +64,7 @@ const userSchema = new mongoose.Schema(
             type: Date,
             default: null,
         }
-        // --- END NEW FIELDS ---
+        
     },
     {
         timestamps: true,

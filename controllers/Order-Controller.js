@@ -37,15 +37,13 @@ export const placeOrder = async (req, res) => {
       orderNotes,
     });
 
-    // Save the new order to the database
     await newOrder.save();
     
-    // --- NEW: SEND ORDER CONFIRMATION EMAIL ---
     try {
         const emailContent = getOrderUpdateEmail({
-            user: { firstName: newOrder.billingAddress.firstName }, // Pass the customer's first name
+            user: { firstName: newOrder.billingAddress.firstName }, 
             order: newOrder,
-            status: 'Confirmation' // Use the new template key
+            status: 'Confirmation' 
         });
 
         if (emailContent) {
@@ -56,10 +54,8 @@ export const placeOrder = async (req, res) => {
             });
         }
     } catch (emailError) {
-        // Log the email error but don't fail the order placement process
         console.error(`Failed to send confirmation email for order ${newOrder._id}:`, emailError);
     }
-    // --- END OF NEW CODE ---
 
     res.status(201).json({ message: "Order placed successfully" , data: newOrder });
 

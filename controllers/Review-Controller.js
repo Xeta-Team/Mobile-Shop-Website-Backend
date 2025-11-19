@@ -10,7 +10,7 @@ export function submitReview(req, res) {
     data.name = req.user.firstname + " " + req.user.lastname;
     data.email = req.user.email;
     data.profilePicture = req.user.profilePicture;
-    data.isApproved = false; // New reviews are not approved by default
+    data.isApproved = false; 
     const newReview = new Review(data);
 
     newReview.save().then(() => {
