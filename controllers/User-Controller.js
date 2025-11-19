@@ -4,25 +4,22 @@ import jwt from 'jsonwebtoken';
 import { OAuth2Client } from "google-auth-library";
 import crypto from 'crypto'; 
 import nodemailer from 'nodemailer'; 
+import Order from '../models/Order-model.js';
 
 
-// --- NEW FUNCTION: Email Sender (Requires environment variables) ---
 const sendEmail = async ({ to, subject, html }) => {
-    // --- ENHANCEMENT: Check for required environment variables ---
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
         console.error("EMAIL CONFIGURATION ERROR: EMAIL_USER or EMAIL_PASS is missing in environment variables. Cannot proceed with Nodemailer.");
-        // Throw an error that registerUser can catch
         throw new Error('Email service configuration missing. Cannot send verification email.'); 
     }
-    // --- END ENHANCEMENT ---
 
     try {
         // Create a transporter object using the default SMTP transport
         const transporter = nodemailer.createTransport({
-            service: 'gmail', // Standard service name for Gmail
+            service: 'gmail', 
             auth: {
-                user: process.env.EMAIL_USER, // Your email address (requires App Password)
-                pass: process.env.EMAIL_PASS  // Your App Password
+                user: process.env.EMAIL_USER, 
+                pass: process.env.EMAIL_PASS  
             },
             // Added timeout to prevent infinite hanging
             timeout: 15000, 
@@ -38,17 +35,13 @@ const sendEmail = async ({ to, subject, html }) => {
         const info = await transporter.sendMail(mailOptions);
         console.log(`[EMAIL SENT] Message ID: ${info.messageId}`);
     } catch (error) {
-        // LSog the actual nodemailer/SMTP error (e.g., Authentication failure)
         console.error("🚨 CRITICAL NODEMAILER ERROR 🚨:", error.message, 
                       "Check your EMAIL_USER and EMAIL_PASS (must be a Google App Password).");
-        // CRITICAL: Throwing the error here ensures registration fails if the email cannot be sent.
         throw new Error('Failed to send verification email. Please check server configuration and credentials.'); 
     }
 }; 
-// --- END NEW FUNCTION ---
 
 
-// --- Updated registerUser to include verification logic ---
 export const registerUser = async (req, res) => {
     const { username, firstName, lastName, email, password } = req.body;
 
@@ -56,16 +49,14 @@ export const registerUser = async (req, res) => {
         const userExists = await User.findOne({ $or: [{ email }, { username }] });
 
         if (userExists) {
-            // Check if existing user is unverified and give them an option to resend later
             if (!userExists.isVerified) {
                  return res.status(409).json({ message: 'User exists but is not verified. Check your inbox.' });
             }
             return res.status(409).json({ message: 'Username or email already exists.' });
         }
         
-        // 1. Generate unique verification token
         const verificationToken = crypto.randomBytes(32).toString('hex');
-        // Token expires in 24 hours
+        
         const verificationTokenExpires = Date.now() + 24 * 3600 * 1000; 
 
         const newUser = new User({
@@ -74,16 +65,13 @@ export const registerUser = async (req, res) => {
             lastName,
             email,
             password,
-            isVerified: false, // Explicitly set to false
+            isVerified: false, 
             verificationToken,
             verificationTokenExpires,
         });
 
-        // Save the user first (without verification)
         await newUser.save();
 
-        // 2. Send the verification email
-        // IMPORTANT: Replace '' with your actual deployed domain base URL (BASE_URL)
         const verificationURL = `${import.meta.env.VITE_BACKEND_URL}/api/users/verify?token=${verificationToken}`;
         
         try {
@@ -114,11 +102,9 @@ export const registerUser = async (req, res) => {
             });
 
         } catch (emailError) {
-            // 3. CRITICAL ROLLBACK: If email sending fails, delete the partially created user record
             console.error("Email sending failed. Rolling back user creation:", newUser._id);
             await User.findByIdAndDelete(newUser._id);
             
-            // Return an appropriate error message to the client
             res.status(503).json({ 
                 message: 'Registration failed: Could not send verification email. Please try again later or contact support.' 
             });
@@ -127,12 +113,10 @@ export const registerUser = async (req, res) => {
 
     } catch (error) {
         console.error("Registration/Database Error:", error);
-        // This catches MongoDB/Mongoose errors (e.g., validation, password hashing)
         res.status(500).json({ message: error.message || 'Error registering user due to server/database issue.' });
     }
 };
 
-// --- Controller Function for Email Verification ---
 export const verifyUser = async (req, res) => {
     const { token } = req.query;
 
@@ -143,35 +127,28 @@ export const verifyUser = async (req, res) => {
     try {
         const user = await User.findOne({ 
             verificationToken: token, 
-            verificationTokenExpires: { $gt: Date.now() } // Check token is not expired
+            verificationTokenExpires: { $gt: Date.now() } 
         });
 
         if (!user) {
-            // Redirect to a frontend page indicating failure
-            // Redirecting to /verification-status for error messages is helpful for debugging/user context
             return res.redirect(`${process.env.FRONTEND_URL}/verification-status?status=error&message=Invalid or expired verification link.`);
         }
 
-        // 1. Update user status
         user.isVerified = true;
-        user.verificationToken = undefined; // Clear token after use
+        user.verificationToken = undefined; 
         user.verificationTokenExpires = undefined;
 
         await user.save();
 
-        // 2. Redirect to the homepage (/) after successful verification, as requested.
-        // NOTE: The user will land on the root path (/). They may need to manually log in 
-        // unless you implement auto-login upon verification in the future.
         return res.redirect(`${process.env.FRONTEND_URL}/`);
 
 
     } catch (error) {
         console.error("Verification Error:", error);
-        // Redirect on server error
+        
         res.redirect(`${process.env.FRONTEND_URL}/verification-status?status=error&message=Internal server error during verification.`);
     }
 };
-// --- END Controller Function ---
 
 
 export const googleLogin = async(req, res) => {
@@ -186,12 +163,9 @@ export const googleLogin = async(req, res) => {
       const payload = ticket.getPayload();
       const { email, given_name, family_name } = payload;
 
-      // Check if user exists in DB
       let user = await User.findOne({ email: email });
 
-      // If user does not exist, create a new one
       if (!user) {
-        // Create a username from the email or name
         const username = email.split('@')[0] + Math.floor(100 + Math.random() * 900);
         
         user = new User({
@@ -204,7 +178,6 @@ export const googleLogin = async(req, res) => {
         await user.save();
       }
 
-      // Generate a JWT for the user (whether they are new or existing)
       const token = jwt.sign(
       {
         id: user._id,
@@ -236,7 +209,6 @@ export const googleLogin = async(req, res) => {
     }
 }
 
-// --- Updated loginUser to block unverified users ---
 export async function loginUser(req, res) {
   try {
     const { email, password } = req.body;
@@ -249,14 +221,11 @@ export async function loginUser(req, res) {
     if (!user) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
-
-    // --- VERIFICATION CHECK ---
     if (!user.isVerified) {
         return res.status(403).json({ 
             message: "Account not verified. Please check your email for the verification link." 
         });
     }
-    // --- END VERIFICATION CHECK ---
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
@@ -313,9 +282,14 @@ export const getUserProfile = async (req, res) => {
   }
   
   try {
-    const user = await User.findById(req.user.id);
+      const [user, totalOrders] = await Promise.all([
+        User.findById(req.user.id),
+        Order.countDocuments({ user: req.user.id })
+      ]);
+      
     if (user) {
-      res.json(user);
+      const wishlistCount = user.wishlist ? user.wishlist.length : 0;
+      res.json({user: user, totalOrders: totalOrders, wishlistCount: wishlistCount});
     } else {
       res.status(404).json({ message: 'User not found' });
     }
@@ -403,17 +377,13 @@ export async function updateUser(req, res)
       }
 }
 
-/**
- * @description Get the logged-in user's wishlist
- * @route GET /api/users/wishlist
- * @access Private
- */
+
 export const getWishlist = async (req, res) => {
     try {
         const user = await User.findById(req.user.id)
             .populate({
                 path: 'wishlist',
-                populate: { path: 'variants' } // Also populate variants to get price info
+                populate: { path: 'variants' } 
             });
 
         if (!user) {
@@ -425,15 +395,10 @@ export const getWishlist = async (req, res) => {
     }
 };
 
-/**
- * @description Add a product to the user's wishlist
- * @route POST /api/users/wishlist
- * @access Private
- */
+
 export const addToWishlist = async (req, res) => {
     try {
         const { productId } = req.body;
-        // Use $addToSet to prevent duplicate entries
         await User.findByIdAndUpdate(req.user.id, {
             $addToSet: { wishlist: productId }
         });
@@ -443,15 +408,10 @@ export const addToWishlist = async (req, res) => {
     }
 };
 
-/**
- * @description Remove a product from the user's wishlist
- * @route DELETE /api/users/wishlist/:productId
- * @access Private
- */
+
 export const removeFromWishlist = async (req, res) => {
     try {
         const { productId } = req.params;
-        // Use $pull to remove the item from the array
         await User.findByIdAndUpdate(req.user.id, {
             $pull: { wishlist: productId }
         });

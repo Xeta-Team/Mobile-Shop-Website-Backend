@@ -1,14 +1,11 @@
 import mongoose from 'mongoose';
 const { Schema } = mongoose;
 
-// Shared categories to ensure consistency across the application
-// FIX: Added "Mobile Phone" to the list of supported categories.
 const ALL_CATEGORIES = [
     'iPhone', 'iPad', 'Mac', 'other Phone', 'iWatch', 'Mobile Phone',
     'Power & Charging', 'Headphone', 'Accessories (Protection & Add-ons)', 'Connectivity / Storage', 'Airpods', 'Other Phone'
 ];
 
-// --- 1. Parent Product Schema ---
 const productSchema = new Schema({
     name: {
         type: String,
@@ -34,7 +31,7 @@ const productSchema = new Schema({
         }
     },
     base_image: {
-        type: String, // Public URL to the main product image
+        type: String, 
         required: [true, 'Base image URL is required.']
     },
     variants: [{
@@ -47,7 +44,7 @@ const productSchema = new Schema({
 
 productSchema.index({ name: 1, brand: 1 }, { unique: true });
 
-// --- 2. Product Variant Schema ---
+
 const productVariantSchema = new Schema({
     product: {
         type: Schema.Types.ObjectId,
@@ -81,9 +78,8 @@ const productVariantSchema = new Schema({
     timestamps: true
 });
 
-// --- 3. Create and Export Models ---
 const Product = mongoose.model('Product', productSchema);
 const Variant = mongoose.model('Variant', productVariantSchema);
 
-// This export syntax is already correct for ES Modules.
+
 export { Product, Variant };
